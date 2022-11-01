@@ -1,15 +1,12 @@
 [package]
 name = "smyth"
 version = "0.1.0"
+edition = "2021"
 
-authors = ["David Cruz"]
+[dependencies]
+syn = { version = "1", features = ["full", "parsing", "extra-traits"], optional = true }
+venial = { version = "0.5", optional = true }
+thiserror = "1"
 
 [features]
 default = ["syn"]
-
-syn = ["syn"]
-venial = ["venial"]
-
-[dependencies]
-syn = { version = "1", optional = true }
-venial = { version = "0.5", optional = true }
