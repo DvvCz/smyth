@@ -29,12 +29,86 @@ pub trait AST: Sized {
 }
 
 #[derive(Debug)]
-struct IfElif {
-	condition: Box<Item>,
-	stmts: Vec<Item>,
+pub struct IfElif {
+	pub condition: Box<Item>,
+	pub stmts: Vec<Item>,
 
-	elif: Vec<Self>,
-	else_stmts: Option<Vec<Item>>,
+	pub elif: Vec<(Item, Vec<Item>)>,
+	pub else_stmts: Option<Vec<Item>>,
+}
+
+#[derive(Debug)]
+pub enum BinaryOp {
+	Add,
+	Sub,
+	Mul,
+	Div,
+
+	Mod,
+	And,
+	Or,
+
+	Bxor,
+	Band,
+	Bor,
+	Bshl,
+	Bshr,
+
+	Eq,
+	Lt,
+	Le,
+	Ne,
+	Ge,
+	Gt,
+
+	AddEq,
+	SubEq,
+	MulEq,
+	DivEq,
+
+	ModEq,
+
+	BxorEq,
+	BandEq,
+	BorEq,
+	BshlEq,
+	BshrEq,
+}
+
+#[cfg(feature = "syn")]
+impl From<::syn::BinOp> for BinaryOp {
+	fn from(x: ::syn::BinOp) -> Self {
+		match x {
+			::syn::BinOp::Add(_) => Self::Add,
+			::syn::BinOp::Sub(_) => Self::Sub,
+			::syn::BinOp::Mul(_) => Self::Mul,
+			::syn::BinOp::Div(_) => Self::Div,
+			::syn::BinOp::Rem(_) => Self::Mod,
+			::syn::BinOp::And(_) => Self::And,
+			::syn::BinOp::Or(_) => Self::Or,
+			::syn::BinOp::BitXor(_) => Self::Bxor,
+			::syn::BinOp::BitAnd(_) => Self::Band,
+			::syn::BinOp::BitOr(_) => Self::Bor,
+			::syn::BinOp::Shl(_) => Self::Bshl,
+			::syn::BinOp::Shr(_) => Self::Bshr,
+			::syn::BinOp::Eq(_) => Self::Eq,
+			::syn::BinOp::Lt(_) => Self::Lt,
+			::syn::BinOp::Le(_) => Self::Le,
+			::syn::BinOp::Ne(_) => Self::Ne,
+			::syn::BinOp::Ge(_) => Self::Ge,
+			::syn::BinOp::Gt(_) => Self::Gt,
+			::syn::BinOp::AddEq(_) => Self::AddEq,
+			::syn::BinOp::SubEq(_) => Self::SubEq,
+			::syn::BinOp::MulEq(_) => Self::MulEq,
+			::syn::BinOp::DivEq(_) => Self::DivEq,
+			::syn::BinOp::RemEq(_) => Self::ModEq,
+			::syn::BinOp::BitXorEq(_) => Self::BxorEq,
+			::syn::BinOp::BitAndEq(_) => Self::BandEq,
+			::syn::BinOp::BitOrEq(_) => Self::BorEq,
+			::syn::BinOp::ShlEq(_) => Self::BshlEq,
+			::syn::BinOp::ShrEq(_) => Self::BshrEq,
+		}
+	}
 }
 
 #[derive(Debug)]
@@ -49,6 +123,7 @@ pub enum Item {
 		condition: Box<Self>,
 		stmts: Vec<Self>,
 	},
+
 	IfElif(IfElif),
 
 	VarSet {
@@ -60,8 +135,23 @@ pub enum Item {
 		expr: Box<Self>,
 	},
 
+	Break,
+	Continue,
+
+	Externs {
+		functions: Vec<String>,
+	},
+
+	Mod {
+		name: String,
+		items: Vec<Self>,
+	},
+
 	// Expressions
-	ExprCall { func: Box<Self>, args: Vec<Self> },
+	ExprCall {
+		func: Box<Self>,
+		args: Vec<Self>,
+	},
 	ExprIdent(String),
 
 	ExprDecimal(f64),
@@ -69,4 +159,19 @@ pub enum Item {
 
 	ExprString(String),
 	ExprBool(bool),
+
+	ExprClosure {
+		params: Vec<String>,
+		stmts: Vec<Self>,
+	},
+
+	ExprArray {
+		elements: Vec<Self>,
+	},
+
+	ExprBinary {
+		lhs: Box<Self>,
+		rhs: Box<Self>,
+		op: BinaryOp,
+	},
 }

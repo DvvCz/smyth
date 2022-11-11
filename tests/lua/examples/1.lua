@@ -1,0 +1,1 @@
+;local test = _G.test;function main()local x = test();print("hello world!",true,x,55,"c")end;
