@@ -188,21 +188,7 @@ impl super::CodeGenerator for LuaCodegen {
 				}
 
 				Item::Break => buf.push_str("break;"),
-
-				Item::Continue => buf.push_str("goto __continue__;"),
-
-				Item::Externs { functions } => {
-					for name in functions {
-						buf.push_str(&format!(";local {name} = _G.{name};"));
-					}
-				}
-
-				Item::Mod { name, items } => {
-					buf.push_str(&format!("local {name} = {{}};"));
-					for item in items {
-						push_item(buf, indent, item);
-					}
-				}
+				Item::Continue => buf.push_str("continue;"),
 
 				x => {
 					dbg!(x);

@@ -1,1 +1,1 @@
-;local test = _G.test;function main()local x = test();print("hello world!",true,x,55,"c")end;
+;local test = _G.test;function main()local x = test();print("hello world!",true,x,55,"c")local x = string.format("%s %s",22,"test");for i = 1,2 do print(5) ::__continue__:: end;for i in expr do  ::__continue__:: end;end;

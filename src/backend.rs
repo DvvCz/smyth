@@ -124,6 +124,24 @@ pub enum Item {
 		stmts: Vec<Self>,
 	},
 
+	ForIn {
+		// for {var} in {expr}
+		var: String,
+		expr: Box<Self>,
+		stmts: Vec<Self>
+	},
+
+	ForRange {
+		// for i = 1, 2, 3
+		var: String,
+		min: Box<Self>,
+		max: Box<Self>,
+		jump: Option<Box<Self>>,
+		stmts: Vec<Self>
+	},
+
+	// C style for loops are equivalent to while.
+
 	IfElif(IfElif),
 
 	VarSet {
@@ -173,5 +191,15 @@ pub enum Item {
 		lhs: Box<Self>,
 		rhs: Box<Self>,
 		op: BinaryOp,
+	},
+
+	ExprFString {
+		strings: Vec<String>,
+
+		// Vector of numbers, which correspond to which value to insert in the string gap.
+		replacements: Vec<u16>,
+
+		// Expressions to insert inside of the string
+		values: Vec<Self>,
 	},
 }

@@ -246,6 +246,32 @@ impl super::AST for SynBackend {
 					stmts: body.stmts.into_iter().map(stmt_to_item).collect(),
 				},
 
+				syn::Expr::ForLoop(syn::ExprForLoop { pat, body, expr, .. }) => {
+					let ident = match pat {
+						syn::Pat::Ident(i) => i.ident.to_string(),
+						other => todo!("{other:?}")
+					};
+
+					match *expr {
+						syn::Expr::Range(syn::ExprRange { from, to, .. }) => {
+							super::Item::ForRange {
+								max: Box::new(to.map(|to| expr_to_item(*to)).unwrap_or(super::Item::ExprInteger(9999))),
+								min: Box::new(from.map(|from| expr_to_item(*from)).unwrap_or(super::Item::ExprInteger(9999))),
+								jump: None,
+								var: ident,
+								stmts: body.stmts.into_iter().map(stmt_to_item).collect()
+							}
+						},
+						_ => super::Item::ForIn {
+							var: ident,
+							expr: Box::new(expr_to_item(*expr)),
+							stmts: body.stmts.into_iter().map(stmt_to_item).collect()
+						}
+					}
+				},
+
+				syn::Expr::Range(syn::ExprRange { from, to, .. }) => unimplemented!(),
+
 				syn::Expr::Break(_) => super::Item::Break,
 				syn::Expr::Continue(_) => super::Item::Continue,
 
@@ -301,12 +327,48 @@ impl super::AST for SynBackend {
 						// use syn::parse_quote::ParseQuote;
 						let args: Vec<super::Item> = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated
 							.parse2(mac.tokens)
-							.expect("Only accepts literals for now")
+							.expect("Only accepts items")
 							.into_iter()
 							.map(expr_to_item)
 							.collect();
 
 						super::Item::ExprCall { func: Box::new(super::Item::ExprIdent("print".into())), args }
+					} else if path == "format" {
+						let args: Vec<super::Item> = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated
+							.parse2(mac.tokens)
+							.expect("Only accepts items")
+							.into_iter()
+							.map(expr_to_item)
+							.collect();
+
+						let mut args = args.into_iter();
+
+						let mut strings = vec![];
+						let mut replacements = vec![];
+						let mut values = vec![];
+
+						match args.next() {
+							Some(super::Item::ExprString(str)) => {
+								let split = str.split("{}");
+								for (k, s) in split.enumerate() {
+									strings.push(s.to_owned());
+									if k != 0 {
+										replacements.push(k as u16);
+									}
+								}
+							},
+							other => panic!("First arg should be a string")
+						}
+
+						for value in args {
+							values.push(value);
+						}
+
+						super::Item::ExprFString {
+							strings,
+							replacements,
+							values
+						}
 					} else {
 						todo!("Unsupported macro: {path}")
 					}
