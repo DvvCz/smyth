@@ -1,12 +1,18 @@
 # smyth
 
 ## Inputs
-* Rust ![30%](https://progress-bar.dev/30)
-* C (planned)
+
+| Lang   | Progress                            |
+| ------ | ----------------------------------- |
+| Rust   | ![30%](https://progress-bar.dev/30) |
+| C      | planned                             |
 
 ## Outputs
-* Lua ![20%](https://progress-bar.dev/20)
-* Python (planned)
-* Javascript (planned)
-* PHP (planned)
-* Dart (planned)
+
+| Lang   | Progress                            |
+| ------ | ----------------------------------- |
+| Lua    | ![20%](https://progress-bar.dev/20) |
+| Python | planned                             |
+| JS     | planned                             |
+| PHP    | planned                             |
+| Dart   | planned                             |
