@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 			Some(extension) if extension == "rs" => {
 				let source = std::fs::read_to_string(&path)?;
 
-				use smyth::backend::AST;
+				use smyth::backend::Ast;
 				use smyth::gen::CodeGenerator;
 			
 				let ast = smyth::backend::Backend::generate(source)?;

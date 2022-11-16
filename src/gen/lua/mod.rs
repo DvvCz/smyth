@@ -10,7 +10,7 @@ impl LuaCodegen {
 }
 
 impl super::CodeGenerator for LuaCodegen {
-	fn generate(&self, ast: &impl crate::backend::AST) -> super::Result<String> {
+	fn generate(&self, ast: &impl crate::backend::Ast) -> super::Result<String> {
 		let items = ast.items();
 		let mut buf = String::new();
 
@@ -64,23 +64,23 @@ impl super::CodeGenerator for LuaCodegen {
 					buf.push(')');
 				}
 
-				Item::ExprIdent(ident) => buf.push_str(&ident),
+				Item::ExprIdent(ident) => buf.push_str(ident),
 
 				Item::ExprInteger(val) => buf.push_str(&val.to_string()),
 				Item::ExprBool(val) => buf.push_str(&val.to_string()),
 				Item::ExprString(val) => buf.push_str(&format!("\"{}\"", val.escape_default())),
 				Item::ExprFString { strings, replacements, values } => {
 					println!("{strings:?}, {replacements:?}, {values:?}");
-					let mut replacements = replacements.into_iter();
+					let mut replacements = replacements.iter();
 					buf.push_str("string.format(\"");
 					for s in strings {
 						buf.push_str(s);
 
-						if let Some(_) = replacements.next() {
+						if replacements.next().is_some() {
 							buf.push_str("%s");
 						}
 					}
-					buf.push_str("\"");
+					buf.push('"');
 					for v in values {
 						buf.push(',');
 						push_item(buf, indent, v);
@@ -100,7 +100,7 @@ impl super::CodeGenerator for LuaCodegen {
 				Item::ExprBinary { lhs, rhs, op } => {
 					use crate::backend::BinaryOp;
 
-					push_item(buf, indent, &*lhs);
+					push_item(buf, indent, lhs);
 					match op {
 						BinaryOp::Add => buf.push('+'),
 						BinaryOp::Sub => buf.push('-'),
@@ -111,7 +111,7 @@ impl super::CodeGenerator for LuaCodegen {
 						_ => buf.push_str("test"),
 					}
 
-					push_item(buf, indent, &*rhs);
+					push_item(buf, indent, rhs);
 				}
 
 				Item::ExprArray { elements } => {
@@ -133,14 +133,14 @@ impl super::CodeGenerator for LuaCodegen {
 					else_stmts,
 				}) => {
 					buf.push_str("if ");
-					push_item(buf, indent, &*condition);
+					push_item(buf, indent, condition);
 					buf.push_str(" then ");
 					push_stmts(buf, indent, stmts);
 
 					if !elif.is_empty() {
 						for (cond, stmts) in elif {
 							buf.push_str(";elseif ");
-							push_item(buf, indent, &*cond);
+							push_item(buf, indent, cond);
 							buf.push_str(" then ");
 							push_stmts(buf, indent, stmts);
 						}
@@ -156,22 +156,22 @@ impl super::CodeGenerator for LuaCodegen {
 
 				Item::While { condition, stmts } => {
 					buf.push_str("while ");
-					push_item(buf, indent, &*condition);
+					push_item(buf, indent, condition);
 					buf.push_str(" do ");
 					push_stmts(buf, indent, stmts);
 					buf.push_str(" ::__continue__:: end;")
 				}
 
-				Item::ForRange { var, min, max, jump, stmts } => {
+				Item::ForRange { var, min, max, jump: _, stmts } => {
 					buf.push_str("for ");
-					buf.push_str(&var);
+					buf.push_str(var);
 					buf.push_str(" = ");
-					push_item(buf, indent, &*min);
-					buf.push_str(",");
-					push_item(buf, indent, &*max);
+					push_item(buf, indent, min);
+					buf.push(',');
+					push_item(buf, indent, max);
 					buf.push_str(" do ");
 					//buf.push_str(",");
-					//push_item(buf, indent, &*jump);
+					//push_item(buf, indent, jump);
 
 					push_stmts(buf, indent, stmts);
 					buf.push_str(" ::__continue__:: end;")
@@ -179,9 +179,9 @@ impl super::CodeGenerator for LuaCodegen {
 
 				Item::ForIn { var, expr, stmts } => {
 					buf.push_str("for ");
-					buf.push_str(&var);
+					buf.push_str(var);
 					buf.push_str(" in ");
-					push_item(buf, indent, &*expr);
+					push_item(buf, indent, expr);
 					buf.push_str(" do ");
 					push_stmts(buf, indent, stmts);
 					buf.push_str(" ::__continue__:: end;")

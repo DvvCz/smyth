@@ -1,11 +1,11 @@
-use syn::{ExprBinary, parse::Parser};
+use syn::parse::Parser;
 
 #[derive(Debug)]
 pub struct SynBackend {
 	pub items: Vec<super::Item>,
 }
 
-impl super::AST for SynBackend {
+impl super::Ast for SynBackend {
 	fn generate(code: impl AsRef<[u8]>) -> super::Result<Self> {
 		let code = code.as_ref();
 		let code = std::str::from_utf8(code).unwrap();
@@ -270,7 +270,7 @@ impl super::AST for SynBackend {
 					}
 				},
 
-				syn::Expr::Range(syn::ExprRange { from, to, .. }) => unimplemented!(),
+				syn::Expr::Range(syn::ExprRange { from: _, to: _, .. }) => unimplemented!(),
 
 				syn::Expr::Break(_) => super::Item::Break,
 				syn::Expr::Continue(_) => super::Item::Continue,
@@ -314,7 +314,7 @@ impl super::AST for SynBackend {
 					}
 				},
 
-				syn::Expr::Macro(syn::ExprMacro { attrs, mac }) => {
+				syn::Expr::Macro(syn::ExprMacro { attrs: _, mac }) => {
 					let path = mac.path
 						.segments
 						.iter()
@@ -334,14 +334,11 @@ impl super::AST for SynBackend {
 
 						super::Item::ExprCall { func: Box::new(super::Item::ExprIdent("print".into())), args }
 					} else if path == "format" {
-						let args: Vec<super::Item> = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated
+						let mut args = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated
 							.parse2(mac.tokens)
 							.expect("Only accepts items")
 							.into_iter()
-							.map(expr_to_item)
-							.collect();
-
-						let mut args = args.into_iter();
+							.map(expr_to_item);
 
 						let mut strings = vec![];
 						let mut replacements = vec![];
@@ -357,7 +354,7 @@ impl super::AST for SynBackend {
 									}
 								}
 							},
-							other => panic!("First arg should be a string")
+							other => panic!("First arg should be a string: {other:?}")
 						}
 
 						for value in args {
@@ -381,7 +378,7 @@ impl super::AST for SynBackend {
 		let nodes: Vec<super::Item> = syn_ast
 			.items
 			.into_iter()
-			.map(|x| syn_item_to_item(x))
+			.map(syn_item_to_item)
 			.collect();
 
 		Ok(SynBackend { items: nodes })

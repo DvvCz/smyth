@@ -2,7 +2,7 @@ mod backend;
 mod gen;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-	use backend::AST;
+	use backend::Ast;
 	use gen::CodeGenerator;
 
 	let ast = backend::Backend::generate(include_bytes!("../test.rs"))?;

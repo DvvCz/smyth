@@ -14,5 +14,5 @@ pub enum CodegenError {
 pub type Result<T> = std::result::Result<T, CodegenError>;
 
 pub trait CodeGenerator: Sized {
-	fn generate(&self, ast: &impl crate::backend::AST) -> Result<String>;
+	fn generate(&self, ast: &impl crate::backend::Ast) -> Result<String>;
 }

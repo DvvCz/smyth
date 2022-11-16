@@ -23,7 +23,7 @@ pub enum BackendError {
 
 pub type Result<T> = std::result::Result<T, BackendError>;
 
-pub trait AST: Sized {
+pub trait Ast: Sized {
 	fn generate(code: impl AsRef<[u8]>) -> Result<Self>;
 	fn items(&self) -> &Vec<Item>;
 }
